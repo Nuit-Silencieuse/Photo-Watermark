@@ -65,13 +65,15 @@ public class Main implements Callable<Integer> {
                     // 1. Read EXIF metadata to get the shooting date
                     Metadata metadata = ImageMetadataReader.readMetadata(file);
                     ExifSubIFDDirectory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
-                    Date date = directory != null ? directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL) : null;
+                    String dateString = directory != null ? directory.getString(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL) : null;
 
-                    if (date == null) {
+                    if (dateString == null || dateString.trim().isEmpty()) {
                         System.out.println("Skipping (no date info): " + file.getName());
                         continue;
                     }
-                    String watermarkText = new SimpleDateFormat("yyyy-MM-dd").format(date);
+                    // The EXIF format is "YYYY:MM:DD HH:MM:SS". We extract the date part
+                    // and replace colons with hyphens to get "YYYY-MM-DD".
+                    String watermarkText = dateString.substring(0, 10).replace(':', '-');
 
                     // 2. Read the image
                     BufferedImage image = ImageIO.read(file);
